@@ -1,8 +1,8 @@
-#from tkinter import filedialog
-#from interfaz import Cargar
+from tkinter import messagebox
+import os
 
 #Encapsulamiento
-class Cursos:
+class Cursos():
 
     #Constructor
     def __init__(self, codigo, nombre, prerequisto, obligatorio, semestre, creditos, estado):
@@ -25,7 +25,10 @@ class Cursos:
         return self.prerequisito
 
     def getObligatorio(self):
-        return self.obligatorio
+        if self.obligatorio == "1":
+            return "Obligatorio"
+        elif self.obligatorio == "0":
+            return "Opcional"
 
     def getSemestre(self):
         return self.semestre
@@ -34,7 +37,12 @@ class Cursos:
         return self.creditos
 
     def getEstado(self):
-        return self.estado
+        if self.estado == "0\n" or self.estado == "0":
+            return "Aprobado"
+        elif self.estado == "1\n" or self.estado == "1":
+            return "Cursando"
+        elif self.estado == "-1\n" or self.estado == "-1":
+            return "Pendiente"
 
     #Setters
     def setCodigo(self, codigo):
@@ -59,18 +67,33 @@ class Cursos:
         self.estado = estado
 
 #Clase para abrir el archivo y leer su contenido
-class AbrirArchivo:
+class AbrirArchivo():
         
     def seleccionar(archivo):
 
-        fileOpen = open(archivo, "r+") #Lo abrimos
-        lineas = fileOpen.readlines() #Leemos su contenido
-        fileOpen.close() #Cerramos el archivo
+        ruta, extension = os.path.splitext(archivo)
 
-        lista = [] #Creamos lista para almacenar los datos de los cursos
+        if extension == ".LFP" or extension == ".lfp":
+
+            print(ruta + "\n")
+            print("Archivo cargado con exito")
+            fileOpen = open(archivo, "r+", encoding="utf-8") #Lo abrimos
+            lineas = fileOpen.readlines() #Leemos su contenido
+            fileOpen.close() #Cerramos el archivo
+
+            print(lineas)
+
+            lista = [] #Creamos lista para almacenar los datos de los cursos
+
+            for linea in lineas:
+            
+                data = linea.split(',') #Devuelve una lista
+                print(data)
+                curso = Cursos(data[0], data[1], data[2], data[3], data[4], data[5], data[6])
+                lista.append(curso)
+                
+            return lista
         
-        for linea in lineas:
-            data = linea.split(',') #Devuelve una lista
-            curso = Cursos(data[0], data[1], data[2], data[3], data[4], data[5], data[6])
-            lista.append(curso)
-        return lista
+        else:
+            messagebox.showerror(message="La extension del archivo no es '.LFP'", title="Error")
+
