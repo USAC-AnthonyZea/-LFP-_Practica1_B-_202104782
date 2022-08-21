@@ -81,19 +81,26 @@ class AbrirArchivo():
             lineas = fileOpen.readlines() #Leemos su contenido
             fileOpen.close() #Cerramos el archivo
 
-            print(lineas)
-
             lista = [] #Creamos lista para almacenar los datos de los cursos
+            
+            ##Funcion para verificar cursos repetidos
+            def repeatCurso(codigo): #Recibe como parametro el codigo
+                for i in lista: #Iteramos en la lista
+                    if i.codigo == codigo: #Verifica si en la posicion i de la lista, el codigo es igual
+                        return True #Retorna True
+                return False #De lo contrario retorna False
 
             for linea in lineas:
             
                 data = linea.split(',') #Devuelve una lista
-                print(data)
-                curso = Cursos(data[0], data[1], data[2], data[3], data[4], data[5], data[6])
-                lista.append(curso)
+
+                ##Si el codigo es falso, añadir el curso
+                if repeatCurso(data[0])==False:
+
+                    curso = Cursos(data[0], data[1], data[2], data[3], data[4], data[5], data[6])
+                    lista.append(curso)
                 
             return lista
         
         else:
             messagebox.showerror(message="La extension del archivo no es '.LFP'", title="Error")
-

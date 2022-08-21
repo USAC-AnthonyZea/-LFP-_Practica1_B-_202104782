@@ -1,8 +1,6 @@
-from cgitb import text
 import tkinter as tk
-from tkinter import CENTER, END, filedialog
+from tkinter import END, filedialog
 from tkinter import ttk
-from unicodedata import name
 from cargar import AbrirArchivo
 from cargar import Cursos
 from tkinter import messagebox
@@ -121,20 +119,27 @@ class Menu(tk.Tk):
         tk.Label(ventana, text="Ruta: ", fg="White", bg="#4F4E4E", font=("Centaur", 15, "bold")).place(x=50, y=50)
 
         #Caja de texto
-        tk.Entry(ventana, fg="Black", bg="#ACACAC", font=("Centaur", 15, "bold")).place(x=120, y=50, width=320)
+        labelRuta = tk.Label(ventana, fg="Black", bg="#ACACAC", font=("Centaur", 15, "bold"))
+        labelRuta.place(x=120, y=50, width=320)
         
         ### Funcion cerrar ventana
         def cerrar():
             self.deiconify()
             ventana.destroy()
-
+            
         ### Funcion seleccionador de archivo
         def cargarFile():
+
+            varRuta = tk.StringVar()
+
             try:
                 archivo = filedialog.askopenfilename()
                 lista = AbrirArchivo.seleccionar(archivo)
-                #self.list_global = lista.copy()
+                varRuta.set(archivo)
 
+                labelRuta.config(textvariable=varRuta)
+                
+                ##Agregando todos los elementos en la lista extra
                 for i in lista:
                     self.list_global.append(i)
 
@@ -488,34 +493,43 @@ class Menu(tk.Tk):
 
         ## Funcion para añadir cursos en la tabla
         def addCurso():
+            condicional = False
+            for i in range(len(self.list_global)):
+                if textCodigo.get() == self.list_global[i].getCodigo():  
+                    condicional = True
+                    break
 
-            if textOpcionalidad.get() != "1" and textOpcionalidad.get() != "0" or textEstado.get() != "0" and textEstado.get() != "1" and textEstado.get() != "-1":
-                messagebox.showerror(message = "Verifique que este ingresando bien sus datos", title = "Valor Incorrecto")
+            if condicional == True:
+                messagebox.showinfo(message = "El curso ya se encuentre en el sistema", title = "Curso añadido")
+
             else:
-                
-                # Enviando datos a clase Cursos
-                curso = Cursos(
-                    textCodigo.get(), 
-                    textNombre.get(), 
-                    textPre_requisito.get(), 
-                    textOpcionalidad.get(), 
-                    textSemestre.get(), 
-                    textCreditos.get(),
-                    textEstado.get())
+                if (textOpcionalidad.get() != "1" and textOpcionalidad.get() != "0" or textEstado.get() != "0" and textEstado.get() != "1" and textEstado.get() != "-1") or (int(textCreditos.get()) < 0) or int(textSemestre.get()) < 1 or int(textSemestre.get()) > 10:
+                    messagebox.showerror(message = "Verifique que este ingresando bien sus datos", title = "Valor Incorrecto")
 
-                self.list_global.append(curso)
+                else:
+                    # Enviando datos a clase Cursos
+                    curso = Cursos(
+                        textCodigo.get(), 
+                        textNombre.get(), 
+                        textPre_requisito.get(), 
+                        textOpcionalidad.get(), 
+                        textSemestre.get(), 
+                        textCreditos.get(),
+                        textEstado.get())
 
-                messagebox.showinfo(message = "Ha sido agregado con exito", title = "Curso Añadido")
-                print("Curso agregado con exito")
+                    self.list_global.append(curso)
 
-                #Reseteando valores
-                textCodigo.delete(0, END)
-                textNombre.delete(0, END) 
-                textPre_requisito.delete(0, END)
-                textSemestre.delete(0, END)
-                textOpcionalidad.delete(0, END)
-                textCreditos.delete(0, END)
-                textEstado.delete(0, END)
+                    messagebox.showinfo(message = "Ha sido agregado con exito", title = "Curso Añadido")
+                    print("Curso agregado con exito")
+
+                    #Reseteando valores
+                    textCodigo.delete(0, END)
+                    textNombre.delete(0, END) 
+                    textPre_requisito.delete(0, END)
+                    textSemestre.delete(0, END)
+                    textOpcionalidad.delete(0, END)
+                    textCreditos.delete(0, END)
+                    textEstado.delete(0, END)
             
         #Buttons
         botonAgregar = tk.Button(
@@ -602,9 +616,26 @@ class Menu(tk.Tk):
                     #Editando valores
                     self.list_global[i].nombre = edit_nombre.get()
                     self.list_global[i].prerequisito = edit_pre_requisito.get()
-                    self.list_global[i].semestre = edit_semestre.get()
-                    self.list_global[i].creditos = edit_creditos.get()
 
+                    ##Verificando que el semestre este entre 1 y 10
+                    if int(edit_semestre.get()) < 1 or int(edit_semestre.get()) > 10:
+                        messagebox.showerror(message="Esta ingresando un dato incorrecto", title="Datos erroneos")
+                        edit_semestre.delete(0, END)
+                        temporal = True
+                        break
+                    else:
+                        self.list_global[i].semestre = edit_semestre.get()
+
+                    ##Verificando que los creditos sean mayor a 0
+                    if int(edit_creditos.get()) < 0:
+                        messagebox.showerror(message="Esta ingresando un dato incorrecto", title="Datos erroneos")
+                        edit_creditos.delete(0, END)
+                        temporal = True
+                        break
+                    else:
+                        self.list_global[i].creditos = edit_creditos.get()
+
+                    ##Verificando que la opcionalidad sea 0 o 1
                     if edit_opcionalidad.get() != "0" and edit_opcionalidad.get() != "1":
                         messagebox.showerror(message="Esta ingresando un dato incorrecto", title="Datos erroneos")
                         edit_opcionalidad.delete(0, END)
@@ -613,12 +644,12 @@ class Menu(tk.Tk):
                     else:
                         self.list_global[i].obligatorio = edit_opcionalidad.get() 
 
+                    ##Verificando que el estado sea 0, -1 o 1
                     if edit_estado.get() != "0" and edit_estado.get() != "1" and edit_estado.get() != "-1":
                         messagebox.showerror(message="Esta ingresando un dato incorrecto", title="Datos erroneos")
                         edit_estado.delete(0, END)
                         temporal = True
-                        break
-                        
+                        break  
                     else: 
                         self.list_global[i].estado = edit_estado.get()
 
@@ -780,21 +811,67 @@ class Menu(tk.Tk):
         labelN.place(x=375, y=185, width=50)
         labelSemestre.place(x=375, y=275, width=50)
 
+        ## Funcion para contar creditos hasta el semestre N
+        def countN():
+            
+            c_obligatorio = tk.StringVar()
+            _semestreN = semestre_N.get() #Obtener el texto de caja de texto
+            cont_N = 0 #Sumador de creditos
+
+            # Validar que se este ingresando un semestre valido
+            if int(_semestreN) < 1 or int(_semestreN) > 10:
+                messagebox.showerror(message="El numero de semestre que ingreso es incorrecto", title="Error en semestre N")
+
+            else:
+                for i in range(len(self.list_global)):
+
+                    if int(self.list_global[i].getSemestre()) <= int(_semestreN) and self.list_global[i].getObligatorio() == "Obligatorio":
+
+                        cont_N += int(self.list_global[i].creditos)
+
+            c_obligatorio.set(str(cont_N))
+
+            labelN.config(textvariable=c_obligatorio)
+        
         #Buttons
         botonContarN = tk.Button(
             ventana, 
             text="Contar",
             font=("Centaur", 10, "bold"),
+            command=countN,
             width=8,
             padx=8,
             pady=5
             ).place(x=195, y=228)
+
+        ## Funcion para contar creditos de un semestre como tal
+        def countS():
+            
+            c_creditos = tk.StringVar()
+            _semestreS = semestre.get() #Obtener el texto de caja de texto
+            cont_S = 0 #Sumador de creditos
+
+            # Validar que se este ingresando un semestre valido
+            if int(_semestreS) < 1 or int(_semestreS) > 10:
+                messagebox.showerror(message="El numero de semestre que ingreso es incorrecto", title="Error en semestre N")
+
+            else:
+                for i in range(len(self.list_global)):
+
+                    if int(self.list_global[i].getSemestre()) == int(_semestreS):
+
+                        cont_S += int(self.list_global[i].creditos)
+
+            c_creditos.set(str(cont_S))
+
+            labelSemestre.config(textvariable=c_creditos)
 
         #Buttons
         botonContarS = tk.Button(
             ventana, 
             text="Contar",
             font=("Centaur", 10, "bold"),
+            command=countS,
             width=8,
             padx=8,
             pady=5
@@ -816,30 +893,31 @@ class Menu(tk.Tk):
 
         def countCreditos():
 
+            #Contadores
             _aprobados = 0
             _cursando = 0
             _pendiente = 0
             
+            #Ciclo para sumar creditos
             for i in range(len(self.list_global)):
                 
-
                 if self.list_global[i].getEstado() == "Aprobado": 
-                    _aprobados += int(self.list_global[i].creditos)
-                elif self.list_global[i].getEstado() == "Cursando":
-                    _cursando += int(self.list_global[i].creditos)
-                elif self.list_global[i].getEstado() == "Pendiente":  
-                    _pendiente += int(self.list_global[i].creditos)
+                    _aprobados += int(self.list_global[i].getCreditos())
+                if self.list_global[i].getEstado() == "Cursando":
+                    _cursando += int(self.list_global[i].getCreditos())
+                if self.list_global[i].getEstado() == "Pendiente" and self.list_global[i].getObligatorio() == "Obligatorio":  
+                    _pendiente += int(self.list_global[i].getCreditos())
             
             print(_aprobados)
             print(_cursando)
             print(_pendiente)
-
+            
             c_aprobado = tk.StringVar()
             c_cursando = tk.StringVar()
             c_pendiente = tk.StringVar()
             
             c_aprobado.set(str(_aprobados))
-            c_cursando.set(str(_aprobados))
+            c_cursando.set(str(_cursando))
             c_pendiente.set(str(_pendiente))
             
             labelAprobados.config(textvariable=c_aprobado)
